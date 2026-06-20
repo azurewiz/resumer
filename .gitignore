@@ -1,0 +1,11 @@
+ruby_env/
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.jsonl
+candidates_part*.jsonl
+.cache/
+*.bin
+*.safetensors
+*.pkl
