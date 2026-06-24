@@ -1,0 +1,87 @@
+# Redrob Hackathon — Submission Metadata
+# Team: azurewiz (solo)
+
+# ============================================================================
+# Team identity
+# ============================================================================
+team_name: "azurewiz"
+
+primary_contact:
+  name: "Sai Arvind Arun"
+  email: "arvindsaaai12@gmail.com"
+  phone: "+91-9173387857"  # double-check this matches your registered number
+
+team_members:
+  - name: "Sai Arvind Arun"
+    email: "arvindsaaai12@gmail.com"
+    role: "Solo — ML Engineer / Data Engineer"
+
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "https://github.com/azurewiz/resumer"
+
+sandbox_link: "https://colab.research.google.com/drive/REPLACE_WITH_YOUR_COLAB_LINK"
+# Replace with the actual Colab notebook link once created.
+
+reproduce_command: "python rank.py --checkpoint candidates_with_all_scores.pkl --out azurewiz.csv"
+# Pre-computation step (run once before the above, ~76 min on CPU):
+# python career_context_score.py --candidates ./candidates.jsonl
+
+# ============================================================================
+# Compute environment
+# ============================================================================
+compute:
+  platform: "Local Linux workstation (Pop!_OS)"
+  cpu_cores: 4           # update to match your actual cpu count: run `nproc` in terminal
+  ram_gb: 8              # update to match: run `free -g` in terminal
+  python_version: "3.12" # confirmed from pip wheel downloads (cp312)
+  os: "Pop!_OS 22.04 LTS (Ubuntu-based)"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: true
+  pre_computation_time_minutes: 80  # approximate — embedding 100K candidates on CPU
+
+# ============================================================================
+# AI tools declaration
+# ============================================================================
+ai_tools_used:
+  - "Claude"
+
+ai_usage_summary: |
+  Claude was used throughout development as an architecture reviewer and
+  pair-programmer. This included: designing the 6-component scoring rubric,
+  generating initial implementations of each scorer, and debugging issues
+  (e.g., diagnosing why the honeypot filter initially flagged zero candidates
+  by testing signal overlap against the full 100K dataset, leading to the
+  AND → OR rule change). Every script was run, tested, and independently
+  sanity-checked against real data by the author before moving forward.
+  No candidate data was sent to any external LLM API at any point. The
+  entire ranking pipeline runs fully offline.
+
+# ============================================================================
+# Approach summary
+# ============================================================================
+methodology_summary: |
+  Two-stage pipeline: (1) a honeypot filter that excludes profiles with
+  impossible internal facts (expert skill at zero months, or career duration
+  inconsistent with stated experience); (2) a 6-component weighted Fit Score
+  — career-context semantic fit via sentence-transformers (35%), skill-depth
+  weighted by proficiency and duration_months (25%), experience-range bell
+  curve (15%), tenure-stability pattern check (10%), geo-eligibility (8%),
+  and quality tiebreakers (7%) — multiplied by a behavioral-availability
+  modifier that down-weights unreachable candidates (inactive, unresponsive,
+  not open to work). Career-context uses all-MiniLM-L6-v2 embeddings to
+  capture semantic meaning, not keyword overlap — specifically to handle
+  plain-language Tier-5 fits and resist keyword stuffers. Runtime for the
+  ranking step: ~17 seconds on CPU for 100K candidates.
+
+# ============================================================================
+# Declarations
+# ============================================================================
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true   # explicitly implemented and validated
+  reproduction_tested: true
