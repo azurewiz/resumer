@@ -21,7 +21,7 @@ team_members:
 # ============================================================================
 github_repo: "https://github.com/azurewiz/resumer"
 
-sandbox_link: "https://colab.research.google.com/drive/REPLACE_WITH_YOUR_COLAB_LINK"
+sandbox_link: "https://colab.research.google.com/drive/1x16vyDSuZh0QmXt7EJXQa1GA0IKrAG8x?usp=sharing"
 # Replace with the actual Colab notebook link once created.
 
 reproduce_command: "python rank.py --checkpoint candidates_with_all_scores.pkl --out azurewiz.csv"
