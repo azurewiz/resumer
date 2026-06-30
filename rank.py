@@ -44,49 +44,53 @@ def top_matched_skills(skills: list, max_n: int = 3) -> list:
             out.append(s["name"])
     return out[:max_n]
 
-
+#Changes made: keeps all the logic exactly as-is, just restructure how the parts join so experience and skills fold into sentence 1 rather than dangling as fragments.
 def generate_reasoning(row) -> str:
-    parts = []
-
-    # Career-context fit (the most heavily weighted component)
     ccs = row["career_context_score"]
+
+    # Sentence 1: career-context + experience + skills — one flowing sentence
     if ccs >= 0.5:
-        parts.append(
+        main = (
             f"Career history at {row['current_company']} shows strong alignment "
-            f"with the role's core requirements (career-context fit {ccs:.2f})"
+            f"with the role's core requirements (career-context fit {ccs:.2f}), "
+            f"with {row['years_of_experience']:.1f} years of experience"
         )
     elif ccs >= 0.35:
-        parts.append(f"Career history shows moderate alignment with the role (career-context fit {ccs:.2f})")
+        main = (
+            f"Career history shows moderate alignment with the role "
+            f"(career-context fit {ccs:.2f}), "
+            f"with {row['years_of_experience']:.1f} years of experience"
+        )
     else:
-        parts.append(f"Career history shows limited alignment with the role's core requirements (career-context fit {ccs:.2f})")
+        main = (
+            f"Career history shows limited alignment with the role's core requirements "
+            f"(career-context fit {ccs:.2f}), "
+            f"with {row['years_of_experience']:.1f} years of experience"
+        )
 
-    # Skill depth -- name actual matched skills, not just the score
+    # Attach skill info to close sentence 1
     matched = top_matched_skills(row["skills"])
     if matched:
-        parts.append(f"holds real depth in {', '.join(matched)}")
+        main += f" and real depth in {', '.join(matched)}."
     elif row["skill_depth_score"] > 0:
-        parts.append("has some relevant skills listed, though with limited depth")
+        main += ", with some relevant skills though limited depth."
     else:
-        parts.append("skill list shows no direct match to the JD's core technical requirements")
+        main += "; skill list shows no direct JD match."
 
-    # Experience and tenure
-    parts.append(f"{row['years_of_experience']:.1f} years of experience")
-    if row["tenure_stability_score"] <= 0.4:
-        parts.append("shows a pattern of frequent short tenures alongside climbing titles")
-
-    # Honest behavioral concerns, especially relevant for lower ranks
+    # Sentence 2: concerns only when they exist (tenure moved here too)
     concerns = []
+    if row["tenure_stability_score"] <= 0.4:
+        concerns.append("pattern of short tenures with climbing titles")
     if not row["open_to_work_flag"]:
-        concerns.append("not currently flagged as open to work")
+        concerns.append("not currently open to work")
     if row["notice_period_days"] and row["notice_period_days"] > 90:
-        concerns.append(f"a {int(row['notice_period_days'])}-day notice period")
+        concerns.append(f"{int(row['notice_period_days'])}-day notice period")
     if row["recruiter_response_rate"] is not None and row["recruiter_response_rate"] < 0.10:
-        concerns.append("a low recruiter response rate")
+        concerns.append("low recruiter response rate")
     if concerns:
-        parts.append("Note: " + ", ".join(concerns))
+        return main + " Note: " + ", ".join(concerns) + "."
 
-    return ". ".join(parts) + "."
-
+    return main
 
 def build_submission(df: pd.DataFrame) -> pd.DataFrame:
     # Stage 1: drop honeypots entirely
